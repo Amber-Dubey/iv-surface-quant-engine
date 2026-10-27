@@ -1,12 +1,19 @@
 % =========================================================================
-% AAPL Real-Data Implied Volatility Surface & Gradient Engine
+% Quantitative Implied Volatility Surface & Gradient Engine
 % =========================================================================
 clear; clc; close all;
 
-disp('>> Loading Real AAPL Market Data...');
+disp('>> Loading Market Data from absolute path...');
 load('C:/Users/ishit/Documents/GitHub/iv-surface-quant-engine/aapl_real_data.mat'); 
 
-disp(['>> Spot Price Loaded: $', num2str(S, '%.2f')]);
+% Extract dynamic ticker name
+if exist('ticker_name', 'var')
+    t_str = char(ticker_name);
+else
+    t_str = 'AAPL';
+end
+
+disp(['>> Ticker: ', t_str, ' | Spot Price Loaded: $', num2str(S, '%.2f')]);
 disp('>> Executing Newton-Raphson Numerical Root-Finding...');
 
 IV = zeros(size(market_prices));
@@ -21,7 +28,7 @@ for i = 1:size(market_prices, 1)
             continue;
         end
         
-        sigma = 0.25; % Initial guess
+        sigma = 0.25; 
         for iter = 1:50
             bs_d1 = (log(S / k_val) + (r + 0.5 * sigma^2) * t_val) / (sigma * sqrt(t_val));
             bs_d2 = bs_d1 - sigma * sqrt(t_val);
@@ -52,12 +59,10 @@ for i = 1:size(market_prices, 1)
     end
 end
 
-% SAFETY GUARD: Clamp extreme mathematical outliers/spikes to realistic bounds
 IV(isnan(IV) | IV <= 0) = 0.20;
 IV(IV > 1.50) = 1.50; 
 IV(IV < 0.05) = 0.05;
 
-% Multivariable Surface Gradients [dIV/dK, dIV/dT]
 [dIV_dK, dIV_dT] = gradient(IV);
 
 disp('>> Rendering 3 Independent Native Octave Visual Windows...');
@@ -65,12 +70,12 @@ disp('>> Rendering 3 Independent Native Octave Visual Windows...');
 % --- WINDOW 1: 3D Implied Volatility Surface ---
 figure(1);
 clf;
-set(gcf, 'Name', 'Figure 1: Real AAPL 3D Implied Volatility Surface', 'Color', 'white');
+set(gcf, 'Name', ['Figure 1: ', t_str, ' 3D Implied Volatility Surface'], 'Color', 'white');
 surf(K, T, IV, 'FaceColor', 'interp', 'EdgeColor', 'none');
 colormap(jet);
 colorbar;
 camlight; lighting gouraud;
-title('Real AAPL 3D Implied Volatility Surface (Black-Scholes Inversion)');
+title([t_str, ' 3D Implied Volatility Surface (Black-Scholes Inversion)']);
 xlabel('Strike Price (K)');
 ylabel('Time to Maturity (T)');
 zlabel('Implied Volatility (\sigma)');
@@ -79,44 +84,34 @@ grid on;
 % --- WINDOW 2: 2D Volatility Smile Cross-Section ---
 figure(2);
 clf;
-set(gcf, 'Name', 'Figure 2: Real AAPL 2D Volatility Smile', 'Color', 'white');
+set(gcf, 'Name', ['Figure 2: ', t_str, ' 2D Volatility Smile'], 'Color', 'white');
 mid_row = round(size(K, 1) / 2);
 plot(K(mid_row, :), IV(mid_row, :), '-ro', 'LineWidth', 2.5, 'MarkerFaceColor', 'r');
 grid on;
-title(['Real AAPL 2D Volatility Smile (Strike Slice at T = ', num2str(T(mid_row, 1), '%.3f'), ' yrs)']);
+title([t_str, ' 2D Volatility Smile (Strike Slice at T = ', num2str(T(mid_row, 1), '%.3f'), ' yrs)']);
 xlabel('Strike Price (K)');
 ylabel('Implied Volatility (\sigma)');
 
 % --- WINDOW 3: 2D Term Structure Cross-Section ---
 figure(3);
 clf;
-set(gcf, 'Name', 'Figure 3: Real AAPL 2D Term Structure', 'Color', 'white');
+set(gcf, 'Name', ['Figure 3: ', t_str, ' 2D Term Structure'], 'Color', 'white');
 mid_col = round(size(K, 2) / 2);
 plot(T(:, mid_col), IV(:, mid_col), '-bs', 'LineWidth', 2.5, 'MarkerFaceColor', 'b');
 grid on;
-title(['Real AAPL 2D Term Structure (Maturity Slice at K = $', num2str(K(1, mid_col), '%.1f'), ')']);
+title([t_str, ' 2D Term Structure (Maturity Slice at K = $', num2str(K(1, mid_col), '%.1f'), ')']);
 xlabel('Time to Maturity (T in Years)');
 ylabel('Implied Volatility (\sigma)');
 
-disp('>> Simulation Complete. All 3 figures generated successfully.');
-
-
-% =========================================================================
-% QUANTITATIVE SUMMARY REPORT (Exact Metrics for Presentation)
-% =========================================================================
+% --- QUANTITATIVE SUMMARY REPORT ---
 disp('--------------------------------------------------');
-disp('          AAPL IV SURFACE QUANTITATIVE REPORT       ');
+fprintf('          %s IV SURFACE QUANTITATIVE REPORT\n', t_str);
 disp('--------------------------------------------------');
-
-% Find At-The-Money (ATM) index (where Strike is closest to Spot S)
 [~, atm_col_idx] = min(abs(K(1, :) - S));
-atm_row_idx = round(size(T, 1) / 2); % Fixed: round only returns 1 value
-
+atm_row_idx = round(size(T, 1) / 2);
 atm_iv = IV(atm_row_idx, atm_col_idx);
 min_iv = min(IV(:));
 max_iv = max(IV(:));
-
-% Calculate Skew Spread (Difference between OTM Put IV and ATM IV)
 otm_put_iv = IV(atm_row_idx, 1);
 skew_spread = otm_put_iv - atm_iv;
 

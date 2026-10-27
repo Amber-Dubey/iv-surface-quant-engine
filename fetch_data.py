@@ -1,20 +1,22 @@
+import sys
 import os
 import numpy as np
 import pandas as pd
 import yfinance as yf
 from scipy.io import savemat
 
-print("Fetching and cleaning real-world option chain for AAPL...")
-stock = yf.Ticker("AAPL")
+# Grab ticker from command-line argument, default to AAPL
+ticker_symbol = sys.argv[1].upper() if len(sys.argv) > 1 else "AAPL"
+print(f"Fetching real-world option chain for {ticker_symbol}...")
+
+stock = yf.Ticker(ticker_symbol)
 hist = stock.history(period="5d")
 spot_price = hist['Close'].iloc[-1]
-risk_free_rate = 0.045 # 4.5%
+risk_free_rate = 0.045
 
 expirations = stock.options
-# Select near-term liquid expirations
 selected_exp = expirations[:min(5, len(expirations))]
 
-# TIGHTENED STRIKE RANGE: Focus on liquid ATM options (93% to 107% of spot)
 common_strikes = np.linspace(spot_price * 0.93, spot_price * 1.07, 22)
 maturities_list = []
 price_matrix = []
@@ -29,7 +31,6 @@ for exp in selected_exp:
     if T <= 0:
         continue
         
-    # Filter strictly for options with active bids and asks to avoid dead ticks
     calls = calls[(calls['bid'] > 0) & (calls['ask'] > 0)]
     if len(calls) < 3:
         continue
@@ -48,13 +49,6 @@ for exp in selected_exp:
     price_matrix.append(interp_prices)
 
 price_matrix = np.array(price_matrix)
-
-# Drop any expiration rows that ended up with too many NaNs
-valid_rows = ~np.isnan(price_matrix).all(axis=1)
-price_matrix = price_matrix[valid_rows]
-maturities_list = np.array(maturities_list)[valid_rows]
-
-# Fill remaining interior gaps smoothly using linear interpolation along columns
 df_prices = pd.DataFrame(price_matrix).interpolate(axis=1).bfill().ffill()
 price_matrix = df_prices.values
 
@@ -68,7 +62,8 @@ savemat(file_path, {
     'r': risk_free_rate,
     'K': K_grid,
     'T': T_grid,
-    'market_prices': price_matrix
+    'market_prices': price_matrix,
+    'ticker_name': ticker_symbol  # Passed dynamically to Octave
 })
 
-print(f"Success! Cleaned & Trimmed AAPL data saved (Spot: ${spot_price:.2f})")
+print(f"Success! {ticker_symbol} data saved successfully.")
