@@ -1,10 +1,10 @@
 --------------------------------------------------
-          AAPL IV SURFACE QUANTITATIVE REPORT
+          NVDA IV SURFACE QUANTITATIVE REPORT
 --------------------------------------------------
-- Spot Price (S)          : $346.73
-- At-The-Money (ATM) IV   : 40.34%
+- Spot Price (S)          : $218.84
+- At-The-Money (ATM) IV   : 38.07%
 - Minimum Surface IV      : 5.00%
-- Maximum Surface IV      : 60.75%
-- Volatility Skew Spread  : 0.0944 (OTM Put vs ATM)
+- Maximum Surface IV      : 63.19%
+- Volatility Skew Spread  : 0.0979 (OTM Put vs ATM)
 - Grid Resolution         : 22 Strikes x 4 Maturities
 --------------------------------------------------
