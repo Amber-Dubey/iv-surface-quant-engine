@@ -80,6 +80,7 @@ xlabel('Strike Price (K)');
 ylabel('Time to Maturity (T)');
 zlabel('Implied Volatility (\sigma)');
 grid on;
+drawnow; 
 
 % --- WINDOW 2: 2D Volatility Smile Cross-Section ---
 figure(2);
@@ -91,6 +92,7 @@ grid on;
 title([t_str, ' 2D Volatility Smile (Strike Slice at T = ', num2str(T(mid_row, 1), '%.3f'), ' yrs)']);
 xlabel('Strike Price (K)');
 ylabel('Implied Volatility (\sigma)');
+drawnow; 
 
 % --- WINDOW 3: 2D Term Structure Cross-Section ---
 figure(3);
@@ -102,6 +104,7 @@ grid on;
 title([t_str, ' 2D Term Structure (Maturity Slice at K = $', num2str(K(1, mid_col), '%.1f'), ')']);
 xlabel('Time to Maturity (T in Years)');
 ylabel('Implied Volatility (\sigma)');
+drawnow; 
 
 % --- QUANTITATIVE SUMMARY REPORT ---
 disp('--------------------------------------------------');
@@ -115,10 +118,24 @@ max_iv = max(IV(:));
 otm_put_iv = IV(atm_row_idx, 1);
 skew_spread = otm_put_iv - atm_iv;
 
-fprintf('• Spot Price (S)          : $%.2f\n', S);
-fprintf('• At-The-Money (ATM) IV   : %.2f%%\n', atm_iv * 100);
-fprintf('• Minimum Surface IV      : %.2f%%\n', min_iv * 100);
-fprintf('• Maximum Surface IV      : %.2f%%\n', max_iv * 100);
-fprintf('• Volatility Skew Spread  : %.4f (OTM Put vs ATM)\n', skew_spread);
-fprintf('• Grid Resolution         : %d Strikes x %d Maturities\n', size(K, 2), size(K, 1));
+fprintf('- Spot Price (S)          : $%.2f\n', S);
+fprintf('- At-The-Money (ATM) IV   : %.2f%%\n', atm_iv * 100);
+fprintf('- Minimum Surface IV      : %.2f%%\n', min_iv * 100);
+fprintf('- Maximum Surface IV      : %.2f%%\n', max_iv * 100);
+fprintf('- Volatility Skew Spread  : %.4f (OTM Put vs ATM)\n', skew_spread);
+fprintf('- Grid Resolution         : %d Strikes x %d Maturities\n', size(K, 2), size(K, 1));
 disp('--------------------------------------------------');
+
+% Save report to text file for Python GUI to read cleanly
+report_file = fopen('report.txt', 'w');
+fprintf(report_file, '--------------------------------------------------\n');
+fprintf(report_file, '          %s IV SURFACE QUANTITATIVE REPORT\n', t_str);
+fprintf(report_file, '--------------------------------------------------\n');
+fprintf(report_file, '- Spot Price (S)          : $%.2f\n', S);
+fprintf(report_file, '- At-The-Money (ATM) IV   : %.2f%%\n', atm_iv * 100);
+fprintf(report_file, '- Minimum Surface IV      : %.2f%%\n', min_iv * 100);
+fprintf(report_file, '- Maximum Surface IV      : %.2f%%\n', max_iv * 100);
+fprintf(report_file, '- Volatility Skew Spread  : %.4f (OTM Put vs ATM)\n', skew_spread);
+fprintf(report_file, '- Grid Resolution         : %d Strikes x %d Maturities\n', size(K, 2), size(K, 1));
+fprintf(report_file, '--------------------------------------------------\n');
+fclose(report_file);
