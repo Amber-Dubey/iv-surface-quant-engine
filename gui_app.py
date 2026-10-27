@@ -67,6 +67,14 @@ class QuantAppGUI:
         try:
             script_dir = os.path.dirname(os.path.abspath(__file__))
             
+            # --- STEP 0: Clean up old report to prevent stale data ---
+            report_path = os.path.join(script_dir, "report.txt")
+            if os.path.exists(report_path):
+                try:
+                    os.remove(report_path)
+                except Exception:
+                    pass
+
             # --- STEP 1: Run Python Data Fetcher ---
             self.log(f"[*] Fetching live market option chain for {ticker}...\n")
             
@@ -85,10 +93,9 @@ class QuantAppGUI:
 
             self.log(f"[+] Market data successfully fetched and cleaned.\n")
 
-            # --- STEP 2: Launch Full Octave GUI Engine (Fixes Blue Loading Disk) ---
+            # --- STEP 2: Launch Full Octave GUI Engine ---
             self.log(f"[*] Executing numerical solver & rendering 3D surface...\n\n")
             
-            # Target the full GUI binary 'octave.exe' instead of 'octave-cli.exe'
             octave_path = r"C:\Program Files\GNU Octave\Octave-11.1.0\mingw64\bin\octave.exe"
             if not os.path.exists(octave_path):
                 octave_path = r"C:\Program Files\GNU Octave\Octave-11.1.0\bin\octave.exe"
@@ -98,7 +105,6 @@ class QuantAppGUI:
                 self.enable_button()
                 return
 
-            # Launch using Popen so Python continues immediately
             subprocess.Popen(
                 [
                     octave_path, 
@@ -109,10 +115,8 @@ class QuantAppGUI:
                 cwd=script_dir
             )
 
-            # --- STEP 3: Instantly Read and Display Report from File ---
-            report_path = os.path.join(script_dir, "report.txt")
-            
-            for _ in range(30):
+            # --- STEP 3: Wait For and Display Fresh Report ---
+            for _ in range(50): # Wait up to 5 seconds for the new report to generate
                 if os.path.exists(report_path):
                     break
                 time.sleep(0.1)
@@ -122,7 +126,7 @@ class QuantAppGUI:
                     report_content = f.read()
                     self.log(report_content)
             else:
-                self.log("\n[WARNING] Report file generation is taking longer than expected.\n")
+                self.log("\n[WARNING] Report file generation timed out.\n")
 
             self.log("\n[SUCCESS] 3D Native Octave windows launched successfully!\n")
 

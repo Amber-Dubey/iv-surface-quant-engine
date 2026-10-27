@@ -3,10 +3,14 @@
 % =========================================================================
 clear; clc; close all;
 
-disp('>> Loading Market Data from absolute path...');
-load('C:/Users/ishit/Documents/GitHub/iv-surface-quant-engine/aapl_real_data.mat'); 
+% Force stable Qt graphics backend for multi-window rendering
+graphics_toolkit('qt');
 
-% Extract dynamic ticker name
+disp('>> Loading Market Data...');
+% Load the unified market data file generated dynamically by Python
+load('market_data.mat'); 
+
+% Extract dynamic ticker name from the loaded .mat workspace
 if exist('ticker_name', 'var')
     t_str = char(ticker_name);
 else

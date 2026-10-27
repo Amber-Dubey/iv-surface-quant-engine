@@ -1,10 +1,10 @@
 --------------------------------------------------
-          NVDA IV SURFACE QUANTITATIVE REPORT
+          GOOGL IV SURFACE QUANTITATIVE REPORT
 --------------------------------------------------
-- Spot Price (S)          : $218.84
-- At-The-Money (ATM) IV   : 38.07%
+- Spot Price (S)          : $321.26
+- At-The-Money (ATM) IV   : 59.19%
 - Minimum Surface IV      : 5.00%
-- Maximum Surface IV      : 63.19%
-- Volatility Skew Spread  : 0.0979 (OTM Put vs ATM)
-- Grid Resolution         : 22 Strikes x 4 Maturities
+- Maximum Surface IV      : 150.00%
+- Volatility Skew Spread  : 0.0187 (OTM Put vs ATM)
+- Grid Resolution         : 22 Strikes x 5 Maturities
 --------------------------------------------------

@@ -55,7 +55,8 @@ price_matrix = df_prices.values
 K_grid, T_grid = np.meshgrid(common_strikes, maturities_list)
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
-file_path = os.path.join(base_dir, 'aapl_real_data.mat')
+# Save to universal market_data.mat so Octave loads the correct ticker dynamically
+file_path = os.path.join(base_dir, 'market_data.mat')
 
 savemat(file_path, {
     'S': spot_price,
